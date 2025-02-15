@@ -1,7 +1,7 @@
 use std::time::Instant;
 
 mod error;
-use error::{FileErrorPackage, HabanoError, LexerErrorPackage};
+use error::{FileErrorPackage, HabanoError};
 
 #[derive(Debug)]
 enum BfCommands {
@@ -10,50 +10,24 @@ enum BfCommands {
     IncrementPointer,
     DecrementPointer,
     Show,
+    Ignore,
 }
 
-fn parse_commands(contents: &str) -> Result<Vec<BfCommands>, HabanoError> {
+fn parse_commands(contents: &str) -> Vec<BfCommands> {
     let mut commands = Vec::new();
 
-    let mut chars = contents.chars().peekable();
-    let mut line = 1;
-    let mut position = 0;
-    while let Some(c) = chars.next() {
-        position += 1;
+    for c in contents.chars() {
         match c {
             '+' => commands.push(BfCommands::Add),
             '.' => commands.push(BfCommands::Show),
             '-' => commands.push(BfCommands::Dec),
             '<' => commands.push(BfCommands::DecrementPointer),
             '>' => commands.push(BfCommands::IncrementPointer),
-            ' ' | '\t' => (),
-            '\n' => {
-                line += 1;
-                position = 0;
-                // Check for \r and skip it
-                if let Some('\r') = chars.peek() {
-                    chars.next();
-                }
-            }
-            '\r' => {
-                line += 1;
-                position = 0;
-                // Check for \n and skip it
-                if let Some('\n') = chars.peek() {
-                    chars.next();
-                }
-            }
-            _ => {
-                return Err(HabanoError::InvalidCharacter(LexerErrorPackage {
-                    character: c,
-                    position,
-                    line,
-                }))
-            }
+            _ => commands.push(BfCommands::Ignore),
         }
     }
 
-    Ok(commands)
+    commands
 }
 
 fn run_commands(commands: Vec<BfCommands>) {
@@ -71,6 +45,7 @@ fn run_commands(commands: Vec<BfCommands>) {
                 let byte = memory[pointer] as u8;
                 print!("{}", byte as char);
             }
+            BfCommands::Ignore => (),
         }
     }
 }
@@ -86,7 +61,7 @@ fn execute() -> Result<(), HabanoError> {
     let contents = std::fs::read_to_string(filename.clone())
         .map_err(|_| HabanoError::CannotOpenFile(FileErrorPackage { filename }))?;
 
-    let commands = parse_commands(&contents)?;
+    let commands = parse_commands(&contents);
     run_commands(commands);
 
     Ok(())
