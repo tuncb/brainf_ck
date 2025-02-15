@@ -82,7 +82,8 @@ fn run_commands(commands: Vec<BfCommands>) {
             BfCommands::Input => {
                 let mut input = String::new();
                 std::io::stdin().read_line(&mut input).unwrap();
-                memory[pointer] = input.chars().next().unwrap() as i8;
+                // Parse the input as a number
+                memory[pointer] = input.trim().parse::<i8>().unwrap_or(0); // Default to 0 if parsing fails
             }
             BfCommands::Ignore => (),
         }
