@@ -11,7 +11,8 @@ enum BfCommands {
     DecrementPointer,
     LoopStart,
     LoopEnd,
-    Show,
+    Input,
+    Output,
     Ignore,
 }
 
@@ -21,7 +22,8 @@ fn parse_commands(contents: &str) -> Vec<BfCommands> {
     for c in contents.chars() {
         match c {
             '+' => commands.push(BfCommands::Add),
-            '.' => commands.push(BfCommands::Show),
+            '.' => commands.push(BfCommands::Output),
+            ',' => commands.push(BfCommands::Input),
             '-' => commands.push(BfCommands::Dec),
             '<' => commands.push(BfCommands::DecrementPointer),
             '>' => commands.push(BfCommands::IncrementPointer),
@@ -45,7 +47,7 @@ fn run_commands(commands: Vec<BfCommands>) {
             BfCommands::Dec => memory[pointer] = memory[pointer].wrapping_sub(1),
             BfCommands::IncrementPointer => pointer = pointer.wrapping_add(1),
             BfCommands::DecrementPointer => pointer = pointer.wrapping_sub(1),
-            BfCommands::Show => {
+            BfCommands::Output => {
                 let byte = memory[pointer] as u8;
                 print!("{}", byte as char);
             }
@@ -76,6 +78,11 @@ fn run_commands(commands: Vec<BfCommands>) {
                         }
                     }
                 }
+            }
+            BfCommands::Input => {
+                let mut input = String::new();
+                std::io::stdin().read_line(&mut input).unwrap();
+                memory[pointer] = input.chars().next().unwrap() as i8;
             }
             BfCommands::Ignore => (),
         }
@@ -109,7 +116,7 @@ fn main() {
     };
 
     let duration = start.elapsed();
-    println!("Execution time: {:?}", duration);
+    println!("\nExecution time: {:?}", duration);
 
     result
 }
