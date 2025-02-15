@@ -13,7 +13,6 @@ enum BfCommands {
     LoopEnd,
     Input,
     Output,
-    Ignore,
 }
 
 fn parse_commands(contents: &str) -> Vec<BfCommands> {
@@ -29,7 +28,7 @@ fn parse_commands(contents: &str) -> Vec<BfCommands> {
             '>' => commands.push(BfCommands::IncrementPointer),
             '[' => commands.push(BfCommands::LoopStart),
             ']' => commands.push(BfCommands::LoopEnd),
-            _ => commands.push(BfCommands::Ignore),
+            _ => (),
         }
     }
 
@@ -85,7 +84,6 @@ fn run_commands(commands: Vec<BfCommands>) {
                 // Parse the input as a number
                 memory[pointer] = input.trim().parse::<i8>().unwrap_or(0); // Default to 0 if parsing fails
             }
-            BfCommands::Ignore => (),
         }
         program_counter += 1;
     }
