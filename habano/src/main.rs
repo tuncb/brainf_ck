@@ -6,6 +6,7 @@ use error::{FileErrorPackage, HabanoError, LexerErrorPackage};
 #[derive(Debug)]
 enum BfCommands {
     Add,
+    Dec,
     Show,
 }
 
@@ -20,6 +21,7 @@ fn parse_commands(contents: &str) -> Result<Vec<BfCommands>, HabanoError> {
         match c {
             '+' => commands.push(BfCommands::Add),
             '.' => commands.push(BfCommands::Show),
+            '-' => commands.push(BfCommands::Dec),
             ' ' | '\t' => (),
             '\n' => {
                 line += 1;
@@ -50,6 +52,23 @@ fn parse_commands(contents: &str) -> Result<Vec<BfCommands>, HabanoError> {
     Ok(commands)
 }
 
+fn run_commands(commands: Vec<BfCommands>) {
+    let mut memory = [0i8; 30000];
+    let pointer = 0;
+
+    for command in commands {
+        match command {
+            BfCommands::Add => memory[pointer] = memory[pointer].wrapping_add(1),
+            BfCommands::Dec => memory[pointer] = memory[pointer].wrapping_sub(1),
+            BfCommands::Show => {
+                // Convert i8 to u8 using bitwise operations
+                let byte = memory[pointer] as u8;
+                print!("{}", byte as char);
+            }
+        }
+    }
+}
+
 fn execute() -> Result<(), HabanoError> {
     if std::env::args().len() != 2 {
         return Err(HabanoError::ArgumentError);
@@ -62,9 +81,7 @@ fn execute() -> Result<(), HabanoError> {
         .map_err(|_| HabanoError::CannotOpenFile(FileErrorPackage { filename }))?;
 
     let commands = parse_commands(&contents)?;
-    for command in commands {
-        println!("{:?}", command);
-    }
+    run_commands(commands);
 
     Ok(())
 }
