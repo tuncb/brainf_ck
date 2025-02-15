@@ -9,6 +9,8 @@ enum BfCommands {
     Dec,
     IncrementPointer,
     DecrementPointer,
+    LoopStart,
+    LoopEnd,
     Show,
     Ignore,
 }
@@ -23,6 +25,8 @@ fn parse_commands(contents: &str) -> Vec<BfCommands> {
             '-' => commands.push(BfCommands::Dec),
             '<' => commands.push(BfCommands::DecrementPointer),
             '>' => commands.push(BfCommands::IncrementPointer),
+            '[' => commands.push(BfCommands::LoopStart),
+            ']' => commands.push(BfCommands::LoopEnd),
             _ => commands.push(BfCommands::Ignore),
         }
     }
@@ -33,20 +37,49 @@ fn parse_commands(contents: &str) -> Vec<BfCommands> {
 fn run_commands(commands: Vec<BfCommands>) {
     let mut memory = [0i8; 30000];
     let mut pointer = 0;
+    let mut program_counter = 0;
 
-    for command in commands {
-        match command {
+    while program_counter < commands.len() {
+        match commands[program_counter] {
             BfCommands::Add => memory[pointer] = memory[pointer].wrapping_add(1),
             BfCommands::Dec => memory[pointer] = memory[pointer].wrapping_sub(1),
             BfCommands::IncrementPointer => pointer = pointer.wrapping_add(1),
             BfCommands::DecrementPointer => pointer = pointer.wrapping_sub(1),
             BfCommands::Show => {
-                // Convert i8 to u8 using bitwise operations
                 let byte = memory[pointer] as u8;
                 print!("{}", byte as char);
             }
+            BfCommands::LoopStart => {
+                if memory[pointer] == 0 {
+                    // Find matching ]
+                    let mut depth = 1;
+                    while depth > 0 {
+                        program_counter += 1;
+                        match commands[program_counter] {
+                            BfCommands::LoopStart => depth += 1,
+                            BfCommands::LoopEnd => depth -= 1,
+                            _ => (),
+                        }
+                    }
+                }
+            }
+            BfCommands::LoopEnd => {
+                if memory[pointer] != 0 {
+                    // Find matching [
+                    let mut depth = 1;
+                    while depth > 0 {
+                        program_counter -= 1;
+                        match commands[program_counter] {
+                            BfCommands::LoopStart => depth -= 1,
+                            BfCommands::LoopEnd => depth += 1,
+                            _ => (),
+                        }
+                    }
+                }
+            }
             BfCommands::Ignore => (),
         }
+        program_counter += 1;
     }
 }
 
