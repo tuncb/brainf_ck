@@ -10,7 +10,7 @@
       "name": "Debug",
       "program": "${workspaceFolder}/habano/target/debug/habano.exe",
       "args": [
-        "D:\\projects\\brainf_ck\\test_files\\add_input.bf"
+        "D:\\projects\\brainf_ck\\test_files\\add.bf"
       ],
       "cwd": "${workspaceFolder}"
     }
