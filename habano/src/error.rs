@@ -1,7 +1,8 @@
 use std::error::Error;
 use std::fmt;
 
-use crate::vm::VmErrorPackage;
+use crate::compiler::CompilerError;
+use crate::vm::VmError;
 
 #[derive(Debug)]
 pub struct FileErrorPackage {
@@ -12,7 +13,8 @@ pub struct FileErrorPackage {
 pub enum HabanoError {
     ArgumentError,
     CannotOpenFile(FileErrorPackage),
-    VmError(VmErrorPackage),
+    HabanoCompilerError(Vec<CompilerError>),
+    HabanoVmError(VmError),
 }
 
 impl fmt::Display for HabanoError {
@@ -20,11 +22,23 @@ impl fmt::Display for HabanoError {
         match self {
             HabanoError::ArgumentError => write!(f, "Usage: habano <filename>"),
             HabanoError::CannotOpenFile(e) => write!(f, "Cannot open file: {}", e.filename),
-            HabanoError::VmError(e) => write!(
+            HabanoError::HabanoVmError(e) => write!(
                 f,
                 "VM error: {:?} at position {} with IR {:?}",
                 e.err, e.position, e.ir
             ),
+            HabanoError::HabanoCompilerError(errors) => {
+                write!(f, "Found {} compiler errors:\n", errors.len())?;
+
+                for error in errors {
+                    write!(
+                        f,
+                        "Compiler error: {:?} at line: {}, column: {}\n",
+                        error.err, error.position.line, error.position.column
+                    )?;
+                }
+                Ok(())
+            }
         }
     }
 }

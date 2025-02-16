@@ -21,7 +21,7 @@ pub enum VmErrorType {
 }
 
 #[derive(Debug)]
-pub struct VmErrorPackage {
+pub struct VmError {
     pub err: VmErrorType,
     pub ir: VmIr,
     pub position: usize,
@@ -33,7 +33,7 @@ struct VmState {
     program_counter: usize,
 }
 
-pub fn execute(commands: Vec<VmIr>) -> Result<(), VmErrorPackage> {
+pub fn execute(commands: Vec<VmIr>) -> Result<(), VmError> {
     let mut vm = VmState {
         memory: [0i8; 30000],
         pointer: 0,
@@ -45,7 +45,7 @@ pub fn execute(commands: Vec<VmIr>) -> Result<(), VmErrorPackage> {
 
         match ir.operand {
             VmIrOperands::Add => {
-                let value = i8::try_from(ir.operand_value).map_err(|_| VmErrorPackage {
+                let value = i8::try_from(ir.operand_value).map_err(|_| VmError {
                     err: VmErrorType::Overflow,
                     ir: ir.clone(),
                     position: vm.program_counter,
@@ -55,7 +55,7 @@ pub fn execute(commands: Vec<VmIr>) -> Result<(), VmErrorPackage> {
             }
             VmIrOperands::MoveMemoryPointer => {
                 if ir.operand_value < 0 || ir.operand_value >= 30000 {
-                    return Err(VmErrorPackage {
+                    return Err(VmError {
                         err: VmErrorType::AccessViolation,
                         ir: ir.clone(),
                         position: vm.program_counter,
@@ -77,7 +77,7 @@ pub fn execute(commands: Vec<VmIr>) -> Result<(), VmErrorPackage> {
             }
             VmIrOperands::GotoIfZero => {
                 if (ir.operand_value < 0) || ((ir.operand_value as usize) >= commands.len()) {
-                    return Err(VmErrorPackage {
+                    return Err(VmError {
                         err: VmErrorType::AccessViolation,
                         ir: ir.clone(),
                         position: vm.program_counter,
@@ -90,7 +90,7 @@ pub fn execute(commands: Vec<VmIr>) -> Result<(), VmErrorPackage> {
             }
             VmIrOperands::GotoIfNonZero => {
                 if (ir.operand_value < 0) || ((ir.operand_value as usize) >= commands.len()) {
-                    return Err(VmErrorPackage {
+                    return Err(VmError {
                         err: VmErrorType::AccessViolation,
                         ir: ir.clone(),
                         position: vm.program_counter,

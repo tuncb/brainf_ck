@@ -22,13 +22,10 @@ fn execute_app() -> Result<(), HabanoError> {
         .map_err(|_| HabanoError::CannotOpenFile(FileErrorPackage { filename }))?;
 
     let tokens = lex(&contents);
-    let irs = compiler::compile(&tokens);
+    let irs =
+        compiler::compile(&tokens).map_err(|op_err| HabanoError::HabanoCompilerError(op_err))?;
 
-    for (index, ir) in irs.iter().enumerate() {
-        println!("{} {:?}", index, ir);
-    }
-
-    execute(irs).map_err(|op_err| HabanoError::VmError(op_err))?;
+    execute(irs).map_err(|op_err| HabanoError::HabanoVmError(op_err))?;
 
     Ok(())
 }
